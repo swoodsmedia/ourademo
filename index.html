@@ -138,39 +138,7 @@
             </div>
 
             
-            <!-- How to Use This Template -->
-            <div id="how-to-use" class="mt-12 bg-gray-900 p-6 rounded-2xl shadow-xl border border-gray-800">
-                <h2 class="text-xl font-bold text-white mb-4">How to Connect Your Oura Data</h2>
-                <p class="text-gray-300 mb-4">
-                    This dashboard is currently using mock data. To connect it to your real Oura account, you'll need to use their official API.
-                </p>
-                <ol class="list-decimal list-inside space-y-3 text-gray-300">
-                    <li>
-                        <strong>Create an Oura Developer Account:</strong>
-                        Go to <a href="https://cloud.ouraring.com/developers" target="_blank" class="text-blue-400 hover:underline font-medium">Oura's Developer Site</a> and sign in.
-                    </li>
-                    <li>
-                        <strong>Create a New Application:</strong>
-                        Follow their instructions to register a new application. You will get a <code class="bg-gray-800 px-1 py-0.5 rounded text-sm text-gray-100">Client ID</code> and <code class="bg-gray-800 px-1 py-0.5 rounded text-sm text-gray-100">Client Secret</code>.
-                    </li>
-                    <li>
-                        <strong>Get a Personal Access Token:</strong>
-                        For personal use, the easiest way to start is by generating a <strong class="text-white">Personal Access Token</strong> on that same developer site.
-                    </li>
-                    <li>
-                        <strong>Update the `fetchData` function:</strong>
-                        In the &lt;script&gt; tag of this file, find the <code class="bg-gray-800 px-1 py-0.5 rounded text-sm text-gray-100">fetchData</code> function.
-                        <ul>
-                            <li class="ml-4">- Replace the <code class="bg-gray-800 px-1 py-0.5 rounded text-sm text-gray-100">'YOUR_API_ENDPOINT_HERE'</code> with a real Oura API endpoint (e.g., <code class="bg-gray-800 px-1 py-0.5 rounded text-sm text-gray-100">https://api.ouraring.com/v2/usercollection/daily_readiness</code>).</li>
-                            <li class="ml-4">- Add your Personal Access Token to the <code class="bg-gray-800 px-1 py-0.5 rounded text-sm text-gray-100">headers</code> as an 'Authorization' token.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Read the Docs:</strong>
-                        The Oura API has many endpoints. Read the <a href="https://cloud.ouraring.com/v2/docs" target="_blank" class="text-blue-400 hover:underline font-medium">official documentation</a> to see all the data you can get!
-                    </li>
-                </ol>
-            </div>
+            <!-- How to Use This Template (REMOVED) -->
             
         </main>
     </div>
@@ -183,7 +151,7 @@
         const errorText = document.getElementById('error-text');
         const successMessage = document.getElementById('success-message');
         const dashboardContent = document.getElementById('dashboard-content');
-        const howToUse = document.getElementById('how-to-use');
+        // const howToUse = document.getElementById('how-to-use'); // Removed
 
         const sleepScoreEl = document.getElementById('sleep-score');
         const sleepFeedbackEl = document.getElementById('sleep-feedback');
@@ -194,6 +162,9 @@
 
         // Add click event listener to the button
         fetchButton.addEventListener('click', fetchData);
+        
+        // --- NEW: Fetch data immediately on page load ---
+        document.addEventListener('DOMContentLoaded', fetchData);
         
         // This function generates realistic-looking, randomized mock data
         function generateRealisticMockData() {
@@ -268,7 +239,7 @@
             // --- 1. Show loading state ---
             loadingSpinner.classList.remove('hidden');
             dashboardContent.classList.add('hidden');
-            howToUse.classList.add('hidden'); // Hide instructions during fetch
+            // howToUse.classList.add('hidden'); // Removed
             errorMessage.classList.add('hidden');
             successMessage.classList.add('hidden');
             fetchButton.disabled = true;
@@ -331,7 +302,7 @@
                 errorText.textContent = error.message;
                 errorMessage.classList.remove('hidden');
                 // Show the "How to Use" section again if there's an error
-                howToUse.classList.remove('hidden');
+                // howToUse.classList.remove('hidden'); // Removed
 
             } finally {
                 // --- 5. Hide loading state ---
@@ -363,3 +334,9 @@
         }
 
         // Initialize Lucide icons
+        lucide.createIcons();
+        // Initially show the "How to Use" section
+        // howToUse.classList.remove('hidden'); // Removed
+    </script>
+</body>
+</html>

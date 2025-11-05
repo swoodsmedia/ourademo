@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-950">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Health Dashboard</title>
+    
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Load Inter font -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    
+    <!-- Load Lucide icons -->
+    <script type="module" src="https://unpkg.com/lucide-react@latest/dist/lucide.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        /* Simple spinner animation */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            width: 1.5rem;
+            height: 1.5rem;
+            animation: spin 1s linear infinite;
+        }
+        /* Custom icon color */
+        .lucide-icon {
+            stroke-width: 2;
+        }
+
+        /* Custom gradient for scores - inspired by Oura */
+        .text-gradient-purple {
+            background: linear-gradient(to right, #a78bfa, #c084fc); /* Light purple to darker purple */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .text-gradient-orange {
+            background: linear-gradient(to right, #fbbf24, #f97316); /* Yellow to orange */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .text-gradient-teal {
+            background: linear-gradient(to right, #2dd4bf, #0d9488); /* Light teal to dark teal */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="h-full text-gray-200">
+    <div class="flex flex-col min-h-screen">
+
+        
+        <!-- Header -->
+        <header class="bg-gray-900 shadow-lg">
+            <!-- Gradient bar -->
+            <div class="h-1 bg-gradient-to-r from-purple-500 via-teal-500 to-orange-500"></div> 
+            <!-- Navigation -->
+            <nav class="container mx-auto max-w-5xl px-4 py-4 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    
+                    <!-- App Icon -->
+                    <svg class="lucide-icon text-purple-400" width="30" height="30" data-lucide="sparkle"></svg>
+                    <span class="text-2xl font-bold text-white tracking-wide">Myoura</span>
+                </div>
+                <button id="fetch-button" class="bg-gray-800 hover:bg-gray-700 text-white font-medium py-2 px-5 rounded-full shadow-md transition duration-200 ease-in-out flex items-center space-x-2 border border-gray-700">
+                    <svg class="lucide-icon" width="18" height="18" data-lucide="refresh-cw"></svg>
+                    <span>Refresh</span>
+                </button>
+            </nav>
+        </header>
+
+        
+        <!-- Main Content -->
+        <main class="flex-grow container mx-auto max-w-5xl px-4 py-8">
+            
+            
+            <!-- Notifications: Loading and Error States -->
+            <div id="loading-spinner" class="text-center py-12 hidden">
+                <div class="spinner mx-auto"></div>
+                <p class="mt-4 text-lg font-medium">Fetching data...</p>
+            </div>
+            <div id="error-message" class="hidden bg-red-900 bg-opacity-30 border border-red-700 text-red-200 px-4 py-3 rounded-lg relative" role="alert">
+                <strong class="font-bold">Error!</strong>
+                <span class="block sm:inline" id="error-text"></span>
+            </div>
+            <div id="success-message" class="hidden bg-green-900 bg-opacity-30 border border-green-700 text-green-200 px-4 py-3 rounded-lg relative" role="alert">
+                <strong class="font-bold">Success!</strong>
+                <span class="block sm:inline">Data loaded successfully.</span>
+            </div>
+
+
+            
+            <!-- Data Dashboard -->
+            <div id="dashboard-content" class="grid grid-cols-1 md:grid-cols-3 gap-6 hidden">
+                
+                
+                <!-- Sleep Score Card -->
+                <div class="bg-gray-900 p-6 rounded-3xl shadow-xl border border-gray-800">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-semibold text-white">Sleep</h2>
+                        <svg class="lucide-icon text-purple-400" width="28" height="28" data-lucide="moon"></svg>
+                    </div>
+                    <div class="text-6xl font-extrabold text-gradient-purple mb-2" id="sleep-score">--</div>
+                    <p class="text-gray-400 text-sm" id="sleep-feedback">No data</p>
+                </div>
+                
+                
+                <!-- Activity Score Card -->
+                <div class="bg-gray-900 p-6 rounded-3xl shadow-xl border border-gray-800">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-semibold text-white">Activity</h2>
+                        <svg class="lucide-icon text-orange-400" width="28" height="28" data-lucide="flame"></svg>
+                    </div>
+                    <div class="text-6xl font-extrabold text-gradient-orange mb-2" id="activity-score">--</div>
+                    <p class="text-gray-400 text-sm" id="activity-feedback">No data</p>
+                </div>
+                
+                
+                <!-- Readiness Score Card -->
+                <div class="bg-gray-900 p-6 rounded-3xl shadow-xl border border-gray-800">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-semibold text-white">Readiness</h2>
+                        <svg class="lucide-icon text-teal-400" width="28" height="28" data-lucide="battery-charging"></svg>
+                    </div>
+                    <div class="text-6xl font-extrabold text-gradient-teal mb-2" id="readiness-score">--</div>
+                    <p class="text-gray-400 text-sm" id="readiness-feedback">No data</p>
+                </div>
+            </div>
+
+            
+            <!-- How to Use This Template -->
+            <div id="how-to-use" class="mt-12 bg-gray-900 p-6 rounded-2xl shadow-xl border border-gray-800">
+                <h2 class="text-xl font-bold text-white mb-4">How to Connect Your Oura Data</h2>
+                <p class="text-gray-300 mb-4">
+                    This dashboard is currently using mock data. To connect it to your real Oura account, you'll need to use their official API.
+                </p>
+                <ol class="list-decimal list-inside space-y-3 text-gray-300">
+                    <li>
+                        <strong>Create an Oura Developer Account:</strong>
+                        Go to <a href="https://cloud.ouraring.com/developers" target="_blank" class="text-blue-400 hover:underline font-medium">Oura's Developer Site</a> and sign in.
+                    </li>
+                    <li>
+                        <strong>Create a New Application:</strong>
+                        Follow their instructions to register a new application. You will get a <code class="bg-gray-800 px-1 py-0.5 rounded text-sm text-gray-100">Client ID</code> and <code class="bg-gray-800 px-1 py-0.5 rounded text-sm text-gray-100">Client Secret</code>.
+                    </li>
+                    <li>
+                        <strong>Get a Personal Access Token:</strong>
+                        For personal use, the easiest way to start is by generating a <strong class="text-white">Personal Access Token</strong> on that same developer site.
+                    </li>
+                    <li>
+                        <strong>Update the `fetchData` function:</strong>
+                        In the &lt;script&gt; tag of this file, find the <code class="bg-gray-800 px-1 py-0.5 rounded text-sm text-gray-100">fetchData</code> function.
+                        <ul>
+                            <li class="ml-4">- Replace the <code class="bg-gray-800 px-1 py-0.5 rounded text-sm text-gray-100">'YOUR_API_ENDPOINT_HERE'</code> with a real Oura API endpoint (e.g., <code class="bg-gray-800 px-1 py-0.5 rounded text-sm text-gray-100">https://api.ouraring.com/v2/usercollection/daily_readiness</code>).</li>
+                            <li class="ml-4">- Add your Personal Access Token to the <code class="bg-gray-800 px-1 py-0.5 rounded text-sm text-gray-100">headers</code> as an 'Authorization' token.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Read the Docs:</strong>
+                        The Oura API has many endpoints. Read the <a href="https://cloud.ouraring.com/v2/docs" target="_blank" class="text-blue-400 hover:underline font-medium">official documentation</a> to see all the data you can get!
+                    </li>
+                </ol>
+            </div>
+            
+        </main>
+    </div>
+
+    <script>
+        // Get references to all the DOM elements
+        const fetchButton = document.getElementById('fetch-button');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        const successMessage = document.getElementById('success-message');
+        const dashboardContent = document.getElementById('dashboard-content');
+        const howToUse = document.getElementById('how-to-use');
+
+        const sleepScoreEl = document.getElementById('sleep-score');
+        const sleepFeedbackEl = document.getElementById('sleep-feedback');
+        const activityScoreEl = document.getElementById('activity-score');
+        const activityFeedbackEl = document.getElementById('activity-feedback');
+        const readinessScoreEl = document.getElementById('readiness-score');
+        const readinessFeedbackEl = document.getElementById('readiness-feedback');
+
+        // Add click event listener to the button
+        fetchButton.addEventListener('click', fetchData);
+        
+        // This function generates realistic-looking, randomized mock data
+        function generateRealisticMockData() {
+            // Helper function to get random int between min and max (inclusive)
+            function getRandomInt(min, max) {
+                min = Math.ceil(min);
+                max = Math.floor(max);
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+
+            // 1. Generate Sleep Score (65-95)
+            const sleepScore = getRandomInt(65, 95);
+            let sleepFeedback = "No data";
+            if (sleepScore > 90) {
+                sleepFeedback = "Excellent night's sleep. Enjoy your day!";
+            } else if (sleepScore > 80) {
+                sleepFeedback = "Good sleep. You're well-rested.";
+            } else if (sleepScore > 70) {
+                sleepFeedback = "Decent sleep. Could be a bit better.";
+            } else {
+                sleepFeedback = "A restless night. Try to rest today.";
+            }
+
+            // 2. Generate Activity Score (50-95)
+            const activityScore = getRandomInt(50, 95);
+            let activityFeedback = "No data";
+            if (activityScore > 90) {
+                activityFeedback = "Fantastic activity level! Keep it up!";
+            } else if (activityScore > 75) {
+                activityFeedback = "Good job staying active.";
+            } else if (activityScore > 60) {
+                activityFeedback = "A light day. Try to move a bit more.";
+            } else {
+                activityFeedback = "Low activity. Remember to move.";
+            }
+
+            // 3. Generate Readiness Score (influenced by sleep/activity)
+            let baseReadiness = getRandomInt(60, 80);
+            if (sleepScore > 85) {
+                baseReadiness += getRandomInt(5, 10); // Sleep bonus
+            } else if (sleepScore < 70) {
+                baseReadiness -= getRandomInt(5, 10); // Sleep penalty
+            }
+            
+            if (activityScore > 80) {
+                baseReadiness += getRandomInt(3, 7); // Activity bonus
+            }
+            
+            // Cap readiness at 98 and floor at 50
+            const readinessScore = Math.max(50, Math.min(baseReadiness, 98)); 
+            
+            let readinessFeedback = "No data";
+            if (readinessScore > 90) {
+                readinessFeedback = "You're at your peak! Seize the day.";
+            } else if (readinessScore > 80) {
+                readinessFeedback = "You're well-rested. Great!";
+            } else if (readinessScore > 70) {
+                readinessFeedback = "Ready for the day. Listen to your body.";
+            } else {
+                readinessFeedback = "Take it easy today. Focus on recovery.";
+            }
+
+            return {
+                readiness: { score: readinessScore, feedback: readinessFeedback },
+                sleep: { score: sleepScore, feedback: sleepFeedback },
+                activity: { score: activityScore, feedback: activityFeedback }
+            };
+        }
+
+        // This function simulates fetching data from an API
+        async function fetchData() {
+            // --- 1. Show loading state ---
+            loadingSpinner.classList.remove('hidden');
+            dashboardContent.classList.add('hidden');
+            howToUse.classList.add('hidden'); // Hide instructions during fetch
+            errorMessage.classList.add('hidden');
+            successMessage.classList.add('hidden');
+            fetchButton.disabled = true;
+            fetchButton.classList.add('opacity-50', 'cursor-not-allowed');
+
+            try {
+                // --- 2. MAKE THE API CALL ---
+                //
+                // !!! IMPORTANT !!!
+                // This is where you would call the real Oura API.
+                //
+                // 1. Get your Personal Access Token from cloud.ouraring.com/developers
+                // 2. Replace 'YOUR_TOKEN_HERE' with your token.
+                // 3. Replace the 'apiUrl' with the Oura endpoint you want to call.
+                //    Example: 'https://api.ouraring.com/v2/usercollection/daily_sleep?start_date=YYYY-MM-DD'
+                //
+                
+                // const YOUR_PERSONAL_ACCESS_TOKEN = 'YOUR_TOKEN_HERE';
+                // const apiUrl = 'https://api.ouraring.com/v2/usercollection/daily_readiness';
+                
+                // const response = await fetch(apiUrl, {
+                //     headers: {
+                //         'Authorization': `Bearer ${YOUR_PERSONAL_ACCESS_TOKEN}`
+                //     }
+                // });
+
+                // if (!response.ok) {
+                //     throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                // }
+                // const data = await response.json();
+                
+                // --- MOCK DATA ---
+                // We will use mock data for this template.
+                // We simulate a 1-second network delay.
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // This is fake data that looks like the Oura API response
+                // const mockData = {
+                //     readiness: { score: 88, feedback: "You're well-rested. Great!" },
+                //     sleep: { score: 92, feedback: "Excellent night's sleep. Enjoy your day!" },
+                //     activity: { score: 78, feedback: "Good activity level. Keep it up!" }
+                // };
+                
+                // --- NEW: Call the random data generator ---
+                const mockData = generateRealisticMockData();
+                
+                // Simulate an error (uncomment the line below to test error handling)
+                // throw new Error("This is a simulated error!");
+
+                // --- 3. Update the UI with data ---
+                updateDashboard(mockData);
+
+                // Show success state
+                successMessage.classList.remove('hidden');
+                dashboardContent.classList.remove('hidden');
+
+            } catch (error) {
+                // --- 4. Handle Errors ---
+                console.error('Failed to fetch data:', error);
+                errorText.textContent = error.message;
+                errorMessage.classList.remove('hidden');
+                // Show the "How to Use" section again if there's an error
+                howToUse.classList.remove('hidden');
+
+            } finally {
+                // --- 5. Hide loading state ---
+                loadingSpinner.classList.add('hidden');
+                fetchButton.disabled = false;
+                fetchButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                
+                // Hide success message after 3 seconds
+                setTimeout(() => {
+                    successMessage.classList.add('hidden');
+                }, 3000);
+            }
+        }
+
+        // This function populates the dashboard cards with data
+        function updateDashboard(data) {
+            if (data.sleep) {
+                sleepScoreEl.textContent = data.sleep.score;
+                sleepFeedbackEl.textContent = data.sleep.feedback;
+            }
+            if (data.activity) {
+                activityScoreEl.textContent = data.activity.score;
+                activityFeedbackEl.textContent = data.activity.feedback;
+            }
+            if (data.readiness) {
+                readinessScoreEl.textContent = data.readiness.score;
+                readinessFeedbackEl.textContent = data.readiness.feedback;
+            }
+        }
+
+        // Initialize Lucide icons
